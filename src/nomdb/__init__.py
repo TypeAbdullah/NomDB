@@ -7,7 +7,7 @@ from nomdb.embedded import NomDB, open_db
 from nomdb.server.server import NomDBServer
 from nomdb.config.settings import ServerSettings
 
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
 def from_url(url: str):
     if url.endswith(".db") or url.endswith(".nomdb") or url.endswith(".dump") or Path(url).exists():
