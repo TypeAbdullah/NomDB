@@ -42,7 +42,13 @@ htmlcov/
 *.aof
 *.rdb
 *.snapshot
+*.db
+*.nomdb
 dump.nomdb
 appendonly.aof
 data/
 logs/
+
+# Local testing bots
+telegram_bot.py
+bot.py
