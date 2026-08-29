@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  nomdb-primary:
+    build: .
+    container_name: nomdb-primary
+    ports:
+      - "6379:6379"
+      - "9121:9121"
+    environment:
+      - NOMDB_HOST=0.0.0.0
+      - NOMDB_PORT=6379
+      - NOMDB_AOF_ENABLED=true
+      - NOMDB_LOG_LEVEL=INFO
+    volumes:
+      - primary_data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('127.0.0.1', 6379)); s.sendall(b'*1\\r\\n$$4\\r\\nPING\\r\\n'); assert s.recv(1024) == b'+PONG\\r\\n'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  nomdb-replica:
+    build: .
+    container_name: nomdb-replica
+    ports:
+      - "6380:6379"
+    environment:
+      - NOMDB_HOST=0.0.0.0
+      - NOMDB_PORT=6379
+      - NOMDB_REPLICA_OF=nomdb-primary
+      - NOMDB_REPLICA_PORT=6379
+      - NOMDB_LOG_LEVEL=INFO
+    depends_on:
+      nomdb-primary:
+        condition: service_healthy
+    volumes:
+      - replica_data:/app/data
+
+volumes:
+  primary_data:
+  replica_data:

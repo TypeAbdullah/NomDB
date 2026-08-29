@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nomdb"
+version = "1.0.0"
+description = "Production-grade Redis-inspired in-memory key-value database built from scratch in Python with asyncio."
+readme = "README.md"
+authors = [{ name = "NomDB Team", email = "info@nomdb.io" }]
+license = { text = "MIT" }
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "mypy>=1.9.0",
+]
+
+[project.scripts]
+nomdb-server = "nomdb.server.server:main"
+nomdb-cli = "nomdb.cli.repl:main"
+nomdb-benchmark = "nomdb.benchmark.runner:main"
+fluxkv-server = "nomdb.server.server:main"
+fluxkv-cli = "nomdb.cli.repl:main"
+fluxkv-benchmark = "nomdb.benchmark.runner:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.mypy]
+python_version = "3.13"
+strict = false
+ignore_missing_imports = true
