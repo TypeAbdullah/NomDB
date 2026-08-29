@@ -212,6 +212,22 @@ class Client:
             args.append("WITHSCORES")
         return self.execute_command(*args)
 
+    @classmethod
+    def from_url(cls, url: str) -> "Client":
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 6379
+        password = parsed.password
+        db = 0
+        if parsed.path and parsed.path != "/":
+            try:
+                db = int(parsed.path.lstrip("/"))
+            except ValueError:
+                pass
+        client = cls(host=host, port=port)
+        return client
+
     def pipeline(self) -> SyncPipeline:
         return SyncPipeline(self)
 

@@ -1,12 +1,7 @@
-"""
-Pub/Sub commands for NomDB.
-"""
-
 from __future__ import annotations
 from typing import Any, List
 from nomdb.commands.base import BaseCommand, CommandContext
-from nomdb.protocol.resp import OK
-
+from nomdb.protocol.resp import NO_REPLY
 
 class SubscribeCommand(BaseCommand):
     name = "SUBSCRIBE"
@@ -18,13 +13,9 @@ class SubscribeCommand(BaseCommand):
 
     def execute(self, ctx: CommandContext, args: List[bytes]) -> Any:
         subs = ctx.server.pubsub_broker.subscribe(ctx.connection, args)
-        # In Redis, subscribing produces response array for each channel: ["subscribe", channel, count]
-        # First subscription is written to client in dispatcher
-        results = []
         for ch, count in subs:
-            results.append([b"subscribe", ch, count])
-        return results[0] if len(results) == 1 else results
-
+            ctx.connection.send_response([b"subscribe", ch, count])
+        return NO_REPLY
 
 class UnsubscribeCommand(BaseCommand):
     name = "UNSUBSCRIBE"
@@ -37,12 +28,11 @@ class UnsubscribeCommand(BaseCommand):
     def execute(self, ctx: CommandContext, args: List[bytes]) -> Any:
         unsubs = ctx.server.pubsub_broker.unsubscribe(ctx.connection, args)
         if not unsubs:
-            return [b"unsubscribe", None, 0]
-        results = []
-        for ch, count in unsubs:
-            results.append([b"unsubscribe", ch, count])
-        return results[0] if len(results) == 1 else results
-
+            ctx.connection.send_response([b"unsubscribe", None, 0])
+        else:
+            for ch, count in unsubs:
+                ctx.connection.send_response([b"unsubscribe", ch, count])
+        return NO_REPLY
 
 class PSubscribeCommand(BaseCommand):
     name = "PSUBSCRIBE"
@@ -54,11 +44,9 @@ class PSubscribeCommand(BaseCommand):
 
     def execute(self, ctx: CommandContext, args: List[bytes]) -> Any:
         subs = ctx.server.pubsub_broker.psubscribe(ctx.connection, args)
-        results = []
         for pat, count in subs:
-            results.append([b"psubscribe", pat, count])
-        return results[0] if len(results) == 1 else results
-
+            ctx.connection.send_response([b"psubscribe", pat, count])
+        return NO_REPLY
 
 class PUnsubscribeCommand(BaseCommand):
     name = "PUNSUBSCRIBE"
@@ -71,12 +59,11 @@ class PUnsubscribeCommand(BaseCommand):
     def execute(self, ctx: CommandContext, args: List[bytes]) -> Any:
         unsubs = ctx.server.pubsub_broker.punsubscribe(ctx.connection, args)
         if not unsubs:
-            return [b"punsubscribe", None, 0]
-        results = []
-        for pat, count in unsubs:
-            results.append([b"punsubscribe", pat, count])
-        return results[0] if len(results) == 1 else results
-
+            ctx.connection.send_response([b"punsubscribe", None, 0])
+        else:
+            for pat, count in unsubs:
+                ctx.connection.send_response([b"punsubscribe", pat, count])
+        return NO_REPLY
 
 class PublishCommand(BaseCommand):
     name = "PUBLISH"

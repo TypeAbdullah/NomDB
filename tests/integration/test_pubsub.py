@@ -20,12 +20,18 @@ def test_pubsub_channels_and_patterns(running_server):
     sub_sock.sendall(RESPEncoder.encode_command("PSUBSCRIBE", "news.*"))
 
     parser = RESPParser()
+    confirmations = []
     # Read subscription confirmations
-    while len(parser.get_parsed_commands()) < 2:
+    while len(confirmations) < 2:
         chunk = sub_sock.recv(4096)
         if not chunk:
             break
         parser.feed(chunk)
+        confirmations.extend(parser.get_parsed_commands())
+
+    assert len(confirmations) == 2
+    assert confirmations[0] == [b"subscribe", b"chat", 1]
+    assert confirmations[1] == [b"psubscribe", b"news.*", 2]
 
     # 3. Publish using regular client
     pub_client = Client(host=running_server.settings.host, port=running_server.settings.port)
@@ -42,9 +48,9 @@ def test_pubsub_channels_and_patterns(running_server):
         if not chunk:
             break
         parser.feed(chunk)
-        cmds = parser.get_parsed_commands()
-        messages.extend(cmds)
+        messages.extend(parser.get_parsed_commands())
 
+    assert len(messages) == 2
     assert messages[0] == [b"message", b"chat", b"Hello Chat!"]
     assert messages[1] == [b"pmessage", b"news.*", b"news.tech", b"Breaking Tech!"]
 
