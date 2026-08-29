@@ -1,10 +1,5 @@
-"""
-CRC16-CCITT algorithm implementation for Redis Cluster 16384 hash slots.
-"""
-
 from __future__ import annotations
 
-# Precomputed CRC16-CCITT lookup table (polynomial 0x1021)
 CRC16_TABLE = [
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
     0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
@@ -40,9 +35,7 @@ CRC16_TABLE = [
     0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0,
 ]
 
-
 def crc16(data: bytes) -> int:
-    """Calculate 16-bit CRC of data byte string."""
     crc = 0
     for byte in data:
         crc = ((crc << 8) & 0xFF00) ^ CRC16_TABLE[((crc >> 8) ^ byte) & 0xFF]

@@ -1,15 +1,9 @@
-"""
-Cluster Node State and Routing Engine.
-Maintains cluster topology, slot allocation, and redirection metadata.
-"""
-
 from __future__ import annotations
 import secrets
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from nomdb.cluster.slots import TOTAL_SLOTS, key_to_slot
-from nomdb.protocol.exceptions import MovedError, AskError, CrossSlotError
-
+from nomdb.protocol.exceptions import MovedError, CrossSlotError
 
 @dataclass
 class ClusterNodeInfo:
@@ -19,10 +13,7 @@ class ClusterNodeInfo:
     flags: str = "master"
     slots: Set[int] = field(default_factory=set)
 
-
 class ClusterManager:
-    """Manages cluster configuration, slot ownership, and query routing."""
-
     def __init__(
         self,
         node_id: Optional[str] = None,
@@ -35,7 +26,6 @@ class ClusterManager:
         self.host = host
         self.port = port
 
-        # Local node representation
         self.myself = ClusterNodeInfo(
             node_id=self.myself_id,
             host=host,
@@ -44,13 +34,10 @@ class ClusterManager:
             slots=set(range(TOTAL_SLOTS)) if not enabled else set(),
         )
 
-        # node_id -> ClusterNodeInfo
         self.nodes: Dict[str, ClusterNodeInfo] = {self.myself_id: self.myself}
-        # slot (0..16383) -> node_id
         self.slot_owners: List[Optional[str]] = [self.myself_id] * TOTAL_SLOTS if not enabled else [None] * TOTAL_SLOTS
 
     def assign_slots(self, node_id: str, slots: List[int]) -> None:
-        """Assign specific slots to a node."""
         if node_id not in self.nodes:
             raise ValueError(f"Node {node_id} not found in cluster")
 
@@ -64,16 +51,11 @@ class ClusterManager:
                 node.slots.add(s)
 
     def add_node(self, node_id: str, host: str, port: int, flags: str = "master") -> ClusterNodeInfo:
-        """Add or update cluster peer."""
         node = ClusterNodeInfo(node_id=node_id, host=host, port=port, flags=flags)
         self.nodes[node_id] = node
         return node
 
     def verify_key_route(self, key: bytes) -> None:
-        """
-        Verify if local node owns the slot for key.
-        If not, raise MovedError to redirect client.
-        """
         if not self.enabled:
             return
 
@@ -81,17 +63,15 @@ class ClusterManager:
         owner_id = self.slot_owners[slot]
 
         if owner_id == self.myself_id:
-            return  # Local node is owner
+            return
 
         if owner_id is not None and owner_id in self.nodes:
             owner = self.nodes[owner_id]
             raise MovedError(slot, f"{owner.host}:{owner.port}")
 
-        # Slot unassigned
         raise MovedError(slot, f"{self.host}:{self.port}")
 
     def verify_multi_key_route(self, keys: List[bytes]) -> None:
-        """Enforce that multi-key operations map to the same hash slot."""
         if not self.enabled or not keys:
             return
 
@@ -103,7 +83,6 @@ class ClusterManager:
         self.verify_key_route(keys[0])
 
     def get_cluster_nodes_output(self) -> str:
-        """Format output string for CLUSTER NODES command."""
         lines = []
         for node in self.nodes.values():
             slot_ranges = self._format_slot_ranges(sorted(node.slots))
@@ -113,7 +92,6 @@ class ClusterManager:
         return "\n".join(lines) + "\n"
 
     def get_cluster_slots_output(self) -> List[List[Any]]:
-        """Format nested array response for CLUSTER SLOTS."""
         results = []
         for node in self.nodes.values():
             if not node.slots:
@@ -121,7 +99,6 @@ class ClusterManager:
             sorted_slots = sorted(node.slots)
             ranges = self._get_contiguous_ranges(sorted_slots)
             for start, end in ranges:
-                # [start_slot, end_slot, [ip, port, node_id]]
                 results.append([
                     start,
                     end,
@@ -130,7 +107,6 @@ class ClusterManager:
         return results
 
     def get_cluster_info_output(self) -> str:
-        """Format output string for CLUSTER INFO."""
         assigned = sum(1 for s in self.slot_owners if s is not None)
         state = "ok" if assigned == TOTAL_SLOTS or not self.enabled else "fail"
         return (

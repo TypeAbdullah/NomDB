@@ -1,8 +1,5 @@
-"""
-NomDB: Production-grade Redis-inspired in-memory key-value database from scratch.
-"""
-
 from nomdb.client.client import Client, AsyncClient
+from nomdb.embedded import NomDB, open_db
 
 __version__ = "1.0.0"
-__all__ = ["Client", "AsyncClient", "__version__"]
+__all__ = ["NomDB", "open_db", "Client", "AsyncClient", "__version__"]
