@@ -3,6 +3,7 @@
 # ⚡ NomDB
 ### High-Performance In-Memory Key-Value Database & Server in Pure Python
 
+[![PyPI Version](https://img.shields.io/pypi/v/nomdb?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/nomdb/)
 [![Python Version](https://img.shields.io/badge/python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Tests Passing](https://img.shields.io/badge/tests-56%20passed-22c55e?style=for-the-badge&logo=pytest&logoColor=white)](https://github.com/TypeAbdullah/NomDB)
 [![Read Speed](https://img.shields.io/badge/read%20speed-537k%20ops%2Fsec-6366f1?style=for-the-badge&logo=speedtest&logoColor=white)](https://github.com/TypeAbdullah/NomDB)
@@ -37,7 +38,13 @@
 
 ## 📥 Installation
 
-Install directly from GitHub using `pip`:
+Install NomDB via `pip`:
+
+```bash
+pip install nomdb
+```
+
+Or install directly from GitHub:
 
 ```bash
 pip install git+https://github.com/TypeAbdullah/NomDB.git
