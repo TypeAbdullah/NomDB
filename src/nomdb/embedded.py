@@ -15,7 +15,7 @@ from nomdb.protocol.exceptions import NomDBError, WrongTypeError
 
 class NomDB:
     def __init__(self, path: Optional[Union[str, Path]] = None, auto_save: bool = True):
-        self.path = Path(path) if path else Path("./nomdb.dump")
+        self.path = Path(path) if path else Path("./nomdb.nom")
         self.auto_save = auto_save
         self.db_manager = DatabaseManager(16)
         self.keyspace = self.db_manager.get_database(0)

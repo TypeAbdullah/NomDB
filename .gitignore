@@ -42,8 +42,9 @@ htmlcov/
 *.aof
 *.rdb
 *.snapshot
-*.db
+*.nom
 *.nomdb
+*.db
 dump.nomdb
 appendonly.aof
 data/
